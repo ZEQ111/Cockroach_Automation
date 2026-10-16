@@ -1,0 +1,60 @@
+﻿slaveAddress:1	 ,txTime:200  ,rxOutTime:1500                                                                      
+
+indexes:0001   ,permission:R     ,rangeValue:-           ,defaultValue:-       ,name:驱动器版本				,remarks:-
+
+indexes:0098   ,permission:R/W   ,rangeValue:0~6000  	 ,defaultValue:-       ,name:开环电流设置		                ,remarks:开环有效电流值 单位:mA
+indexes:0088   ,permission:R/W   ,rangeValue:200~60000   ,defaultValue:-               ,name:开环细分设置		                 ,remarks:的细分值  单位:Pul/rev
+indexes:002E   ,permission:R/W   ,rangeValue:0~1	 ,defaultValue:0                      ,name:开环初始运转方向                              ,remarks:(重新上电生效) 0:出厂默认运转方向  1：与出厂默认方向相反
+
+indexes:0030   ,permission:R/W   ,rangeValue:0~8    ,defaultValue:0   ,name:驱动器工作模式选择   ,remarks:(重新上电生效)0:单脉冲信号  2:双脉冲信号  4:自发脉冲速度模式   7:自发脉冲位置模式 
+indexes:0071   ,permission:R/W   ,rangeValue:0~3000      ,defaultValue:-       ,name:自发脉冲速度设置		                 ,remarks:单位:r/min 
+indexes:0076   ,permission:R/W   ,rangeValue:0~65535     ,defaultValue:10000   ,name:自发脉冲位置模式总脉冲数低16位	,remarks:单位：Pul
+indexes:0077   ,permission:R/W   ,rangeValue:0~65535     ,defaultValue:0       ,name:自发脉冲位置模式总脉冲数高16位 	,remarks:单位：Pul
+indexes:0073   ,permission:R/W   ,rangeValue:0~2000      ,defaultValue:-       ,name:自发脉冲加速时间			,remarks:单位:1代表1ms
+indexes:0074   ,permission:R/W   ,rangeValue:0~2000      ,defaultValue:-       ,name:自发脉冲减速时间			,remarks:单位:1代表1ms
+indexes:007D   ,permission:R/W   ,rangeValue:200~60000   ,defaultValue:40000   ,name:自发脉冲位置模式下细分设置		,remarks:单位:Pul/rev
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

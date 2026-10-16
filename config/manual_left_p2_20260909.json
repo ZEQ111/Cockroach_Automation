@@ -1,0 +1,26 @@
+{
+  "status": "x_minus_25_refinement_pending_repeat_validation",
+  "target": "P2 left spot when looking from tail toward head",
+  "selected_result_point_index": 1,
+  "point_selection_condition": "The detector normalizes head-to-tail orientation; result point index 1 is the user-verified left spot when looking from tail toward head.",
+  "source_result": "vision_output/offset_trial_20260909_light_adjusted/result.json",
+  "source_pixel": [1869.274658203125, 1658.103759765625],
+  "source_machine_steps": {"X": 1550, "Y": -1770, "Z": 8020},
+  "manual_needle_alignment_steps": {"X": 1006, "Y": -1700, "Z": 7720},
+  "user_estimated_clearance_mm": 7,
+  "reference_pixel": [1924.8845825195312, 1696.9229736328125],
+  "camera_alignment_steps_float": [1517.9693947508351, -1728.1973727198733],
+  "original_manual_tool_offset_steps": [-511.96939475083514, 28.19737271987333],
+  "fine_adjustment_steps": [-25.0, 0.0],
+  "fine_adjustment_reason": "Latest live alignment required X to move 25 additional negative steps to reach the precise point.",
+  "tool_offset_from_reference_steps": [-536.9693947508351, 28.19737271987333],
+  "tool_offset_from_reference_mm_theoretical": [-32.21816368505011, 1.6918423631923996],
+  "notes": [
+    "Offset is relative to the calibrated reference pixel, not the optical axis; do not add the CAD 54.06 mm again.",
+    "Active tool offset includes the later X=-25 step fine adjustment; preserve original_manual_tool_offset_steps as the first manual sample.",
+    "Pixel mapping assumes unchanged target pose between source capture and manual alignment.",
+    "This records visual XY alignment only; 7 mm clearance is not a measured surface Z or automatic descent permission.",
+    "Turntable tool1 was manually reset to drilling head down during this session.",
+    "Repeatability, physical millimetre accuracy and tool indexing repeatability remain unverified."
+  ]
+}

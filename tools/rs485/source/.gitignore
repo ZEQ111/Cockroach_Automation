@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+force_*.csv
+weight_log.csv
+
+# PyInstaller 打包产物
+build/
+dist/
+*.spec

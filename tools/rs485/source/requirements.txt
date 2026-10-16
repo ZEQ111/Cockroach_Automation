@@ -1,0 +1,15 @@
+# RS485 称重/测力上位机 —— 依赖清单
+# 版本号已固定，避免以后库升级导致 API 变动跑不起来
+#
+# 安装（在项目目录下执行）：
+#   .venv\Scripts\python.exe -m pip install -r requirements.txt
+#
+# 本机已于 2026-09-18 安装验证通过 (Python 3.13.9)
+# 2026-09-21 新增 aiohttp（只有 pymodbus 自带模拟器需要，上位机本身不用）
+
+minimalmodbus==2.1.1
+pymodbus==3.15.0
+pyserial==3.5
+
+# 可选：pymodbus.simulator 起模拟从站时需要
+aiohttp>=3.9

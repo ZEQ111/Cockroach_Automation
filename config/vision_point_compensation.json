@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "updated_at": "2026-10-15",
+  "scope": "VIS abdomen detector points only; do not apply to VIS_HEAD",
+  "coordinate_convention": "correction_steps = manually_aligned_POS - calculated_target_xy_steps",
+  "source_run": "vision_output/auto/20261015_194632/result.json",
+  "correction_steps_by_point_number": {
+    "1": {
+      "X": -10,
+      "Y": 190,
+      "calculated_target_xy_steps": {"X": 648, "Y": -2122},
+      "manually_aligned_xy_steps": {"X": 638, "Y": -1932}
+    },
+    "2": {
+      "X": -30,
+      "Y": 195,
+      "calculated_target_xy_steps": {"X": 868, "Y": -2117},
+      "manually_aligned_xy_steps": {"X": 838, "Y": -1922}
+    }
+  },
+  "notes": [
+    "Point numbers are the 1-based numbers displayed by the VIS selection prompt.",
+    "The correction is added after pixel conversion and the common needle/tool offset.",
+    "Z measurements are intentionally excluded from this XY compensation."
+  ]
+}

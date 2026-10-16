@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "updated_at": "2026-10-15",
+  "scope": "VIS_HEAD detector points only; do not apply to VIS abdomen points",
+  "coordinate_convention": "correction_steps = manually_aligned_POS - calculated_target_xy_steps",
+  "source_run": "vision_output/head_auto/20261015_210648/result.json",
+  "alignment_z_steps": 8938,
+  "correction_steps_by_point_number": {
+    "1": {
+      "X": -24,
+      "Y": 73,
+      "calculated_target_xy_steps": {"X": 715, "Y": -1516},
+      "manually_aligned_xy_steps": {"X": 691, "Y": -1443}
+    },
+    "2": {
+      "X": -34,
+      "Y": 65,
+      "calculated_target_xy_steps": {"X": 845, "Y": -1508},
+      "manually_aligned_xy_steps": {"X": 811, "Y": -1443}
+    },
+    "3": {
+      "X": -28,
+      "Y": 109,
+      "calculated_target_xy_steps": {"X": 719, "Y": -1612},
+      "manually_aligned_xy_steps": {"X": 691, "Y": -1503}
+    },
+    "4": {
+      "X": -38,
+      "Y": 106,
+      "calculated_target_xy_steps": {"X": 849, "Y": -1609},
+      "manually_aligned_xy_steps": {"X": 811, "Y": -1503}
+    }
+  },
+  "notes": [
+    "Point numbers are the 1-based P1-P4 numbers displayed by VIS_HEAD.",
+    "The correction is added after pixel conversion and the common needle/tool offset.",
+    "Z is recorded as measurement context and is not added to automatic motion."
+  ]
+}

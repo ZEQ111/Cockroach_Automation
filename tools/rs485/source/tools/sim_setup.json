@@ -1,0 +1,62 @@
+{
+    "server_list": {
+        "sim_server": {
+            "comm": "tcp",
+            "host": "127.0.0.1",
+            "port": 5020,
+            "ignore_missing_devices": false,
+            "framer": "socket",
+            "identity": {
+                "VendorName": "pymodbus",
+                "ProductCode": "SIM",
+                "VendorUrl": "https://github.com/pymodbus-dev/pymodbus/",
+                "ProductName": "RS485 模拟从站",
+                "ModelName": "SIM-1",
+                "MajorMinorRevision": "1.0.0"
+            }
+        }
+    },
+    "device_list": {
+        "sim_device": {
+            "setup": {
+                "co size": 64,
+                "di size": 64,
+                "hr size": 64,
+                "ir size": 64,
+                "shared blocks": true,
+                "type exception": true,
+                "defaults": {
+                    "value": {
+                        "bits": 0,
+                        "uint16": 0,
+                        "uint32": 0,
+                        "float32": 0.0,
+                        "string": " "
+                    },
+                    "action": {
+                        "bits": null,
+                        "uint16": null,
+                        "uint32": null,
+                        "float32": null,
+                        "string": null
+                    }
+                }
+            },
+            "invalid": [],
+            "write": [],
+            "bits": [],
+            "uint16": [
+                {"addr": 0, "value": 100, "action": "increment", "parameters": {"minval": 0, "maxval": 5000}},
+                {"addr": [1, 16], "value": 0},
+                {"addr": 17, "value": 12345, "action": null},
+                {"addr": 18, "value": 0},
+                {"addr": 19, "value": 6789, "action": null},
+                {"addr": [20, 63], "value": 0}
+            ],
+            "uint32": [],
+            "float32": [],
+            "string": [],
+            "repeat": []
+        }
+    }
+}
