@@ -7,16 +7,16 @@
   - latest() 给钻孔状态机取最新 (monotonic, raw, value)；
   - 连续失败计数 + 数据过期判定，供状态机识别 SENSOR_FAULT；
   - 支持 serial / tcp 两种链路（tcp 供无硬件本地测试）；
-  - Modbus 组帧/解析复用 RS485-USB-SERIAL-READ/modbus_link.py（懒加载）。
+  - Modbus 组帧/解析复用 tools/rs485/source/modbus_link.py（懒加载）。
 
 现场注意：
   - 传感器串口是独占资源：运行本模块时不要再开 RS485 GUI 或串口助手；
-  - COM 口以设备管理器实际为准，可用 pc/force_sensor.json 覆盖默认值；
+  - COM 口以设备管理器实际为准，在 config/force_sensor.json 覆盖默认值；
   - 读数比例（原始值 -> 物理量）用砝码标定后填 scale。
 
 无硬件测试：
   - 单测见 tests/test_force_sensor.py（注入假链路）；
-  - 端到端见 tests/test_e2e_mock_slave.py（TCP 连 tools/mock_slave.py）。
+  - 端到端见 tests/test_e2e_mock_slave.py（TCP 连 tools/rs485/source/tools/mock_slave.py）。
 """
 
 from __future__ import annotations
@@ -29,8 +29,9 @@ import time
 from collections import deque
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-CONFIG_PATH = PROJECT_ROOT / 'pc' / 'force_sensor.json'
+from settings import PROJECT_ROOT, FORCE_SENSOR_CONFIG
+
+CONFIG_PATH = FORCE_SENSOR_CONFIG
 
 DEFAULT_CONFIG = {
     'mode': 'serial',          # serial | tcp
@@ -54,7 +55,7 @@ DEFAULT_CONFIG = {
 
 
 def load_config(path=None):
-    """默认配置 + 可选 JSON 覆盖（现场只改 JSON，不动代码）。"""
+    """默认配置 + 可选 JSON 覆盖（现场只改 config/force_sensor.json，不动代码）。"""
     config = dict(DEFAULT_CONFIG)
     candidate = Path(path) if path else CONFIG_PATH
     if candidate.exists():
@@ -64,7 +65,7 @@ def load_config(path=None):
 
 
 def find_modbus_link_dir():
-    """定位 modbus_link.py：兼容整理版仓库布局与本工作区布局。"""
+    """定位 modbus_link.py：优先整理版仓库布局，兼容原工作区布局。"""
     for candidate in (
         PROJECT_ROOT / 'tools' / 'rs485' / 'source',
         PROJECT_ROOT / 'RS485-USB-SERIAL-READ',
@@ -97,7 +98,7 @@ class ForceSensor:
         stamp = time.strftime('%Y%m%d_%H%M%S')
         self.csv_path = (
             Path(csv_path) if csv_path
-            else PROJECT_ROOT / 'motion_logs' / f'sensor_{stamp}.csv'
+            else PROJECT_ROOT / 'runtime' / 'motion_logs' / f'sensor_{stamp}.csv'
         )
         self._link = link
         self._link_owned = link is None
@@ -119,7 +120,7 @@ class ForceSensor:
             link_dir = find_modbus_link_dir()
             if link_dir is None:
                 raise RuntimeError(
-                    '找不到 modbus_link.py（检查 RS485-USB-SERIAL-READ 目录是否存在）'
+                    '找不到 modbus_link.py（检查 tools/rs485/source 目录是否存在）'
                 )
             if str(link_dir) not in sys.path:
                 sys.path.insert(0, str(link_dir))

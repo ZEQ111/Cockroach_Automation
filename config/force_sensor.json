@@ -1,4 +1,5 @@
 {
+  "mode": "serial",
   "port": "COM6",
   "baudrate": 19200,
   "unit": 1,

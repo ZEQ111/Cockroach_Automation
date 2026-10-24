@@ -74,3 +74,13 @@ python -m unittest discover -s tests -v
 ## 来源说明
 
 `code/pc/DM_CAN.py` 来源于目录外原有的 `pc/DM_CAN.py`。其上游项目的许可证副本见 `docs/DM_Control_Python_LICENSE`。原目录中的历史日志、调试图像、缓存、相机探测依赖副本和旧版本未纳入此整理目录。
+
+## 钻孔 D1-D3
+
+- 入口：`python code/pc/drill_console.py`，或双击 `run_drill_test.bat`
+- 流程：`TZ -> TE -> D1 -> D2 -> D3 -> Q`；`FULL` / `RUN` 执行三阶段；`DC` 只跑钻孔核心
+- 配置：`config/drill_params.json`（工具映射、进给、限深、抬升、`drill_duty`、ECAL、D3 速度）
+- 标定初始值：`config/safe_z.json`、`config/drill_start_z.json`、`config/electrode_calibration.json`
+- 运行状态：`runtime/drill_state.json`，程序生成，不修改 config
+- 当前：T1=电极、T2=钻孔，`drill_duty=0`（D1 下 Z、钻头不转），限深 2500 步，抬升 2000 步，D3 速度 500 步/秒
+- `Z_STOP` 每次 D1 更新；视觉与转盘原功能保留，`motion_client.py` 的 `DC` 复用同一钻孔核心

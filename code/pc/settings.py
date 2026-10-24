@@ -51,8 +51,17 @@ VISION_OUTPUT_ROOT = PROJECT_ROOT / 'runtime' / 'vision_output' / 'auto'
 VISION_HEAD_OUTPUT_ROOT = PROJECT_ROOT / 'runtime' / 'vision_output' / 'head_auto'
 VISION_SHOW_RESULT = True
 
+# ---------------- 钻孔 D1-D3 配置 ----------------
+FORCE_SENSOR_CONFIG = PROJECT_ROOT / 'config' / 'force_sensor.json'
+DRILL_PARAMS_CONFIG = PROJECT_ROOT / 'config' / 'drill_params.json'
+SAFE_Z_CONFIG = PROJECT_ROOT / 'config' / 'safe_z.json'
+DRILL_START_CONFIG = PROJECT_ROOT / 'config' / 'drill_start_z.json'
+ELECTRODE_CALIBRATION_CONFIG = PROJECT_ROOT / 'config' / 'electrode_calibration.json'
+DRILL_STATE_PATH = PROJECT_ROOT / 'runtime' / 'drill_state.json'
+DRILL_EVENT_LOG_DIR = PROJECT_ROOT / 'runtime' / 'motion_logs'
+
 # ---------------- 转盘电机（USB-CAN）配置 ----------------
-TURNTABLE_PORT = 'COM10'   # USB-CAN 模块在设备管理器里的 COM 号
+TURNTABLE_PORT = 'COM8'   # USB-CAN 模块在设备管理器里的 COM 号
 TURNTABLE_BAUD = 921600
 TURNTABLE_KP = 20          # 位置刚度
 TURNTABLE_KD = 1.0         # 速度阻尼

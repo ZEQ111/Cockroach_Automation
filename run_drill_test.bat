@@ -2,8 +2,8 @@
 chcp 65001 >nul
 cd /d "%~dp0"
 echo ===============================================
-echo  Drill flow console - SENSOR mode
+echo  Drill D1-D3 console
 echo ===============================================
-python pc\full_flow.py
+python code\pc\drill_console.py
 echo.
 pause
