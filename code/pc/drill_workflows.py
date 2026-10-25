@@ -230,8 +230,26 @@ def run_automatic_drill(ser, sensor=None, params=None):
                 pass
 
 
+def _zstop_usable(drill):
+    """D3/ECAL 只接受成功钻孔或人工 ZSTOP。"""
+    if not drill or drill.get('z_stop') is None:
+        return False
+    status = drill.get('status')
+    if status == 'MANUAL_INPUT':
+        return True
+    if status != 'BREAKTHROUGH':
+        return False
+    if not drill.get('lifted'):
+        return False
+    if drill.get('drill_off_verified') is not True:
+        return False
+    if drill.get('safe_returned') is False:
+        return False
+    return True
+
+
 def drill_stage(ser, tt, sensor=None):
-    """D1：安全高度 -> 钻孔头 -> 钻孔核心 -> 抬升。"""
+    """D1：安全高度 -> 钻孔头 -> 移动到钻孔起点 -> 钻孔核心 -> 抬升。"""
     _, tool_drill = tools_from_config()
     if not _turntable_ready(tt):
         return None
@@ -239,12 +257,38 @@ def drill_stage(ser, tt, sensor=None):
         return None
     if not _rotate_tool(tt, tool_drill, '钻孔头'):
         return None
+
+    state = load_state()
+    start_z = state.get('drill_start_z')
+    if start_z is None:
+        print('D1: 没有 DRILL_START_Z，拒绝下钻')
+        return None
+    start_z = int(start_z)
+    if start_z < 0:
+        print(f'D1: DRILL_START_Z={start_z} 为负，拒绝下钻')
+        ensure_safe_z(ser)
+        return None
+    print(f'D1: 安全高度 -> DRILL_START_Z={start_z}')
+    if not _z_move(ser, start_z, 500):
+        print('D1: 移动到钻孔起点失败')
+        ensure_safe_z(ser)
+        return None
+    pos = query_positions(ser)
+    if pos is None or int(pos['Z']) != start_z:
+        print(f'D1: 钻孔起点未确认（期望 {start_z}，实际 {pos}）')
+        ensure_safe_z(ser)
+        return None
+
     result = run_automatic_drill(ser, sensor=sensor)
     if result is None:
         print('D1: 未执行钻孔')
+        ensure_safe_z(ser)
         return None
-    print(f"D1: 完成 Z_stop={result.get('z_stop')} status={result.get('status')}")
-    ensure_safe_z(ser)
+
+    result['safe_returned'] = bool(ensure_safe_z(ser))
+    result['drill_start_z'] = start_z
+    print(f"D1: Z_stop={result.get('z_stop')} status={result.get('status')} "
+          f"lifted={result.get('lifted')} safe_returned={result.get('safe_returned')}")
     return result
 
 
@@ -267,6 +311,10 @@ def electrode_stage(ser, tt):
     if not LAST_DRILL_RESULT or LAST_DRILL_RESULT.get('z_stop') is None:
         print('D3: 没有钻孔 Z_STOP；先 D1 或输入 ZSTOP <Z>')
         return False
+    if not _zstop_usable(LAST_DRILL_RESULT):
+        print(f"D3: 当前钻孔结果不可用（status={LAST_DRILL_RESULT.get('status')}，"
+              f"lifted={LAST_DRILL_RESULT.get('lifted')}）")
+        return False
     state = load_state()
     target = int(round(
         int(LAST_DRILL_RESULT['z_stop'])
@@ -287,15 +335,29 @@ def electrode_stage(ser, tt):
         ensure_safe_z(ser)
         return False
     print('D3: 电极到位')
-    ensure_safe_z(ser)
+    if not ensure_safe_z(ser):
+        print('D3: 抬回安全高度失败')
+        return False
     return True
 
 
 def run_full(ser, tt, sensor=None):
-    """FULL/RUN：D1 -> D2 -> D3。"""
+    """FULL/RUN：D1 -> D2 -> D3。D1 未满足成功条件时不继续。"""
     result = drill_stage(ser, tt, sensor=sensor)
     if result is None:
-        print('FULL: D1 未完成')
+        print('FULL: D1 未完成，停止')
+        return False
+    if result.get('status') != 'BREAKTHROUGH':
+        print(f"FULL: D1 状态 {result.get('status')}，停止")
+        return False
+    if not result.get('lifted'):
+        print('FULL: D1 抬升未确认，停止')
+        return False
+    if result.get('drill_off_verified') is not True:
+        print('FULL: D1 钻头停止未确认，停止')
+        return False
+    if not result.get('safe_returned'):
+        print('FULL: D1 回到安全高度失败，停止')
         return False
     if not swap_stage(ser, tt):
         print('FULL: D2 未完成')
@@ -315,6 +377,9 @@ def ecal(ser, tt):
         return False
     if not LAST_DRILL_RESULT or LAST_DRILL_RESULT.get('z_stop') is None:
         print('ECAL: 没有 Z_STOP；先 D1 或 ZSTOP <Z>')
+        return False
+    if not _zstop_usable(LAST_DRILL_RESULT):
+        print(f"ECAL: 当前钻孔结果不可用（status={LAST_DRILL_RESULT.get('status')}）")
         return False
     z_stop = int(LAST_DRILL_RESULT['z_stop'])
     speed, step, max_steps = ecal_speed()

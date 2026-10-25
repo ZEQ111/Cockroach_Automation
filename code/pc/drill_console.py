@@ -174,11 +174,10 @@ def main():
                 print_help()
                 continue
             if up in ('FULL', 'RUN'):
-                if all(k in wf.load_state() for k in ('safe_z_steps', 'drill_start_z')):
-                    if input('确认开始 FULL？(y/N): ').strip().lower() != 'y':
-                        print('已取消')
-                        continue
-                    wf.run_full(ser, tt)
+                if input('确认开始 FULL？(y/N): ').strip().lower() != 'y':
+                    print('已取消')
+                    continue
+                wf.run_full(ser, tt)
                 continue
             if up in ('D1', 'DRILLSTAGE'):
                 wf.drill_stage(ser, tt)
