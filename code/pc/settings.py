@@ -61,7 +61,7 @@ DRILL_STATE_PATH = PROJECT_ROOT / 'runtime' / 'drill_state.json'
 DRILL_EVENT_LOG_DIR = PROJECT_ROOT / 'runtime' / 'motion_logs'
 
 # ---------------- 转盘电机（USB-CAN）配置 ----------------
-TURNTABLE_PORT = 'COM8'   # USB-CAN 模块在设备管理器里的 COM 号
+TURNTABLE_PORT = 'COM11'   # USB-CAN 模块在设备管理器里的 COM 号
 TURNTABLE_BAUD = 921600
 TURNTABLE_KP = 20          # 位置刚度
 TURNTABLE_KD = 1.0         # 速度阻尼

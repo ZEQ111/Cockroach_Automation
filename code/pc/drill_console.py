@@ -28,12 +28,14 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from serial_motion import (
     BAUD, pick_port, open_verified_arduino, send, read_response,
-    query_positions, wait_positions, normalize_motion_command,
+    query_positions, wait_positions,
 )
 from turntable import Turntable, handle_turntable
 from force_sensor import ForceSensor, load_config as load_sensor_config
 from settings import TURNTABLE_PORT, TURNTABLE_BAUD
 import drill_workflows as wf
+import serial_motion as motion
+from motion_client import handle_motion_command
 
 
 def connect_turntable():
@@ -94,15 +96,24 @@ def _state_text():
 
 def print_help():
     print("""
-================ 钻孔 D1-D3 操作台 ================
+================ 运动 / 视觉 / D1-D3 操作台 ================
 手动：
   X100 / Y-50 / Z200 / B10      相对移动（Z+ 向下）
   G0 X1000 Y2000 Z500           绝对步数
   M0 X50 Y30 Z10                绝对毫米
   POS / P                       查询坐标
   SPEED500                      设置速度
+  HOME / HX / HY / HZ           限位回零（HOME 等待全轴完成）
+  ZERO / R                      坐标清零（不移动）
+  VIS / VISION                  原流程：归零→视觉位→识别→选点移动
+  VIS_FAST / VISF               已 HOME 时不再归零，进入视觉位识别
+  VIS_HEAD                      归零并识别头部4点，选点移动
+  VIS_HEAD_FAST / VIS_HEADF     已确认 HOME 时跳过归零
+  JOG                           方向键点动，Q 返回本控制台
+  LIM / DIAG / BOOTPOS / MPOS   限位、诊断、上电位置、毫米坐标
   A [N]                         快速下降，不转钻头（默认 500 步）
-  DRILL OFF / STATUS            关钻头/状态
+  PWM 80 / DRILL 80             设置钻头占空比0–100
+  DRILL ON / OFF / STATUS       开钻/关钻/状态
   TZ / TE / TD                  转盘设零/使能/失能
   T1 / T2 / T3 / TN / TP        工具位
   F / S                         力值一次/实时 5 秒
@@ -113,7 +124,7 @@ def print_help():
   D2 / SWAP                     阶段2：安全→T1
   D3 / ELECTRODE                阶段3：电极按 Z_STOP+offset+insert 下探
   FULL / RUN                    D1→D2→D3
-  DC                            只跑钻孔核心
+  DC / DRILLCYCLE                只跑钻孔核心
 标定：
   SAFE / SAFE <Z>               查看/设置安全高度
   DRILLSTART / DRILLSTART <Z>   查看/设置钻孔起点
@@ -127,20 +138,11 @@ def print_help():
 
 def _manual(ser, line):
     up = line.strip().upper()
-    if up in ('POS', 'P') or re.fullmatch(r'[XYZB]\s*-?\d+', up) or up.startswith(('G0', 'M0')):
-        cmd = normalize_motion_command(line)
-        send(ser, cmd)
-        print(read_response(ser, timeout=0.5), end='')
-        return True
-    if up == 'SPEED' or up.startswith('SPEED'):
-        send(ser, line)
-        print(read_response(ser, timeout=0.5), end='')
-        return True
-    if up in ('DRILL OFF', 'DRILL STATUS'):
-        send(ser, up)
-        print(read_response(ser, timeout=0.5), end='')
-        return True
-    return False
+    # 坐标基准变化后，不再沿用旧的钻孔停止位置；必须重新 D1 或 ZSTOP。
+    if up in ('HOME', 'HX', 'HY', 'HZ', 'ZERO', 'R', 'VIS', 'VISION', 'VIS_HEAD'):
+        wf.LAST_DRILL_RESULT = None
+    handle_motion_command(ser, 'POS' if up == 'P' else line)
+    return True
 
 
 def main():
@@ -155,6 +157,8 @@ def main():
         print(f'Arduino 连接失败：{exc}')
         return
     print(f'Arduino 已连接 {port} @ {BAUD}')
+    motion.vision_reference_ready = False
+    wf.LAST_DRILL_RESULT = None
     tt = connect_turntable()
     print(_state_text())
     print_help()
@@ -188,7 +192,7 @@ def main():
             if up in ('D3', 'ELECTRODE', 'ELE'):
                 wf.electrode_stage(ser, tt)
                 continue
-            if up == 'DC':
+            if up in ('DC', 'DRILLCYCLE'):
                 wf.run_automatic_drill(ser)
                 continue
             if up == 'ECAL':
@@ -245,7 +249,7 @@ def main():
                     print(f"INSERT={wf.load_state()['insert_steps']:+d}")
                 continue
             if up in ('E', 'STOP'):
-                send(ser, 'STOP')
+                send(ser, up)
                 print(read_response(ser, timeout=1.0), end='')
                 continue
             if up == 'F':

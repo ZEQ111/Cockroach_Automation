@@ -7,6 +7,49 @@ from turntable import Turntable, handle_turntable
 from vision_workflows import run_automatic_vision, run_visual_head
 from drill_workflows import run_automatic_drill
 
+def handle_motion_command(ser, line):
+    """两个控制台共用的步进、视觉及点动命令；复用现有串口连接。"""
+    up = line.strip().upper()
+    if up == 'JOG':
+        jog_mode(ser)
+        return
+    if up in ('VISION', 'VIS'):
+        run_automatic_vision(ser)
+        return
+    if up in ('VIS_FAST', 'VISF'):
+        run_automatic_vision(ser, skip_home=True)
+        return
+    if up == 'VIS_HEAD':
+        run_visual_head(ser)
+        return
+    if up in ('VIS_HEAD_FAST', 'VIS_HEADF'):
+        run_visual_head(ser, skip_home=True)
+        return
+    try:
+        command = normalize_motion_command(line)
+    except ValueError as exc:
+        print(f'输入错误：{exc}')
+        return
+    up = command.upper()
+    home_markers = {
+        'HOME': ('HOME DONE', 'FAIL'),
+        'HX': ('HOMED X', 'FAIL'),
+        'HY': ('HOMED Y', 'FAIL'),
+        'HZ': ('HOMED Z', 'FAIL'),
+    }
+    if up in (*home_markers, 'ZERO', 'R'):
+        motion.vision_reference_ready = False
+    send(ser, command)
+    if up in home_markers:
+        out = read_response(ser, markers=home_markers[up], timeout=120)
+    else:
+        out = read_response(ser, timeout=0.3)
+    print(out, end='')
+    if up == 'HOME':
+        motion.vision_reference_ready = 'HOME DONE' in out and 'FAIL' not in out
+        if motion.vision_reference_ready:
+            motion.motion_fault = None
+
 def cmd_mode(ser, tt):
     while True:
         try:
@@ -15,24 +58,7 @@ def cmd_mode(ser, tt):
             break
         if line.lower() in ("exit", "quit"):
             break
-        if line.lower() == "jog":
-            jog_mode(ser)
-            print_usage()
-            continue
         if not line:
-            continue
-        if line.upper() in ('VISION', 'VIS'):
-            run_automatic_vision(ser)
-            continue
-        if line.upper() in ('VIS_FAST', 'VISF'):
-            run_automatic_vision(ser, skip_home=True)
-            continue
-        """20261011新增头部视觉识别"""
-        if line.upper() == 'VIS_HEAD':
-            run_visual_head(ser)
-            continue
-        if line.upper() in ('VIS_HEAD_FAST', 'VIS_HEADF'):
-            run_visual_head(ser, skip_home=True)
             continue
         if line.upper() in ('DC', 'DRILLCYCLE'):
             run_automatic_drill(ser)
@@ -44,30 +70,9 @@ def cmd_mode(ser, tt):
             elif not handle_turntable(tt, line):
                 print("未知转盘指令。可用: TE / TD / TZ / T1 / T2 / T3 / TN / TP")
             continue
-        try:
-            command = normalize_motion_command(line)
-        except ValueError as exc:
-            print(f'输入错误：{exc}')
-            continue
-        up = command.upper()
-        if up in ('HOME', 'HX', 'HY', 'HZ', 'ZERO'):
-            motion.vision_reference_ready = False
-        send(ser, command)
-        # 回零是阻塞式, 等各自结束标志, 输出完整不乱序
-        # HOME 要等 "HOME DONE"(总结束), 不能碰到第一个 "HOMED Z" 就提前停
-        home_markers = {
-            "HOME": ("HOME DONE", "FAIL"),
-            "HX":   ("HOMED X",   "FAIL"),
-            "HY":   ("HOMED Y",   "FAIL"),
-            "HZ":   ("HOMED Z",   "FAIL"),
-        }
-        if up in home_markers:
-            out = read_response(ser, markers=home_markers[up], timeout=60)
-        else:
-            out = read_response(ser, timeout=0.3)
-        print(out, end="")
-        if up == 'HOME':
-            motion.vision_reference_ready = 'HOME DONE' in out and 'FAIL' not in out
+        handle_motion_command(ser, line)
+        if line.lower() == 'jog':
+            print_usage()
 
 def jog_mode(ser):
     import msvcrt
@@ -124,7 +129,7 @@ def print_usage():
     print("  VISION (VIS)              归零→视觉位→约20秒可视化检测→自动移动目标XY")
     print("  VIS_FAST (VISF)           已确认零点时跳过归零，安全返回视觉位后识别")
     print("  VIS_HEAD                  归零识别头部4点，并按编号逐点移动XY")
-    print("  VIS_HEAD_FAST (VIS_HEADF) 已完成VIS_HEAD时跳过归零，再次识别头部4点")
+    print("  VIS_HEAD_FAST (VIS_HEADF) 已确认HOME时跳过归零，识别头部4点")
     print("  DC (DRILLCYCLE)           传感器阶跃停钻→抬升（D1/D3请用 drill_console.py）")
     print("  SPEED500 (V500)        设置速度")
     print("  ZDOWN (ZD)             Z轴持续向下，直到停止或触发下限位")

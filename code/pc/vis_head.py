@@ -192,6 +192,7 @@ def capture_and_detect_head(
         print(f'P{index}: ({x}, {y})')
     if show_capture_preview:
         first_index = valid_results[0][0]
+        print('VIS_HEAD: 请关闭头部结果窗口（或在图像窗口按 Q / Esc），随后在控制台输入 P1–P4 选点。', flush=True)
         _show_head_result(frames[first_index], median_points)
     return median_points
 
